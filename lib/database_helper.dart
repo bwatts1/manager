@@ -88,4 +88,12 @@ class DatabaseHelper {
   Future<int> deleteAll() async {
     return await _db.delete(table);
   }
+Future<List<Map<String, dynamic>>> getItems() async {
+  return await _db.query(table);
+}
+
+Future<List<Map<String, dynamic>>> getItemsAsList() async {
+  return await getItems();
+}
+
 }

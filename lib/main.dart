@@ -38,6 +38,21 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
+  List<Map<String, dynamic>> tasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _collectData();
+  }
+
+  void _collectData() async {
+    final data = await dbHelper.getItemsAsList();
+    setState(() {
+      tasks = data;
+    });
+  }
+
 
   void _showAlert(String title, String content) {
     showDialog(
@@ -152,11 +167,16 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('sqflite')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          
-        ),
+      body: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+          final name = tasks[index]['name'];
+          final age = tasks[index]['age'];
+          return ListTile(
+            title: Text(name),
+            subtitle: Text('Age: $age'),
+          );
+        },
       ),
       
       floatingActionButton: Stack(
