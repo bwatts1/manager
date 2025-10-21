@@ -116,7 +116,32 @@ class _MyHomePageState extends State<MyHomePage> {
     debugPrint('deleted $rowsDeleted row(s): row $id');
     _showAlert('Delete', 'Deleted $rowsDeleted row(s): row $id');
   }
-
+  void _deleteAllC() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirm Delete All'),
+          content: Text('Are you sure you want to delete all records?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+                _deleteAll(); // Call the delete all function
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
   void _deleteAll() async {
     final rowsDeleted = await dbHelper.deleteAll();
     debugPrint('Deleted $rowsDeleted row(s)');
@@ -130,38 +155,31 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
-          children: [
-            TextField(
-              controller: _idController,
-              decoration: const InputDecoration(labelText: 'ID'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: _ageController,
-              decoration: const InputDecoration(labelText: 'Age'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _insert, child: const Text('insert')),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: _query, child: const Text('query')),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: _update, child: const Text('update')),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: _delete, child: const Text('delete')),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: _deleteAll, child: const Text('delete all')),
-          ],
+          
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _add,
-        tooltip: 'add',
-        child: const Icon(Icons.add),
+      
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            left: 30,
+            bottom: 16,
+            child: FloatingActionButton(
+              onPressed: _deleteAllC,
+              tooltip: 'delete',
+              child: Icon(Icons.delete),
+            ),
+          ), 
+          Positioned(
+            right: 0,
+            bottom: 16,
+            child: FloatingActionButton(
+              onPressed: _add,
+              tooltip: 'add',
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }
