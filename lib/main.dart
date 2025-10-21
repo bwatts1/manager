@@ -51,6 +51,36 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+  void _add() {
+    showDialog(
+      context: context,
+      builder: (context) {
+      TextEditingController textController = TextEditingController();
+      return AlertDialog(
+        title: Text('Enter Your Name'),
+        content: TextField(
+          controller: textController,
+          decoration: InputDecoration(hintText: 'Type here'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              print('User Input: ${textController.text}');
+              Navigator.of(context).pop();
+            },
+            child: Text('Submit'),
+          ),
+          ],
+        );
+      },
+    );
+  }
 
   void _insert() async {
     Map<String, dynamic> row = {
@@ -85,22 +115,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final rowsDeleted = await dbHelper.delete(id);
     debugPrint('deleted $rowsDeleted row(s): row $id');
     _showAlert('Delete', 'Deleted $rowsDeleted row(s): row $id');
-  }
-
-  void _queryById() async {
-    final idToQuery = int.parse(_idController.text);
-    final row = await dbHelper.queryById(idToQuery);
-    if (row != null) {
-      debugPrint('Queried row: $row');
-      _showAlert('Queried Row', '''
-ID: ${row[DatabaseHelper.columnId]}
-Name: ${row[DatabaseHelper.columnName]}
-Age: ${row[DatabaseHelper.columnAge]}
-''');
-    } else {
-      debugPrint('No row found with ID $idToQuery');
-      _showAlert('Query by ID', 'No row found with ID $idToQuery');
-    }
   }
 
   void _deleteAll() async {
@@ -140,11 +154,14 @@ Age: ${row[DatabaseHelper.columnAge]}
             const SizedBox(height: 10),
             ElevatedButton(onPressed: _delete, child: const Text('delete')),
             const SizedBox(height: 10),
-            ElevatedButton(onPressed: _queryById, child: const Text('query by ID')),
-            const SizedBox(height: 10),
             ElevatedButton(onPressed: _deleteAll, child: const Text('delete all')),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _add,
+        tooltip: 'add',
+        child: const Icon(Icons.add),
       ),
     );
   }
