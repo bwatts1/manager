@@ -37,7 +37,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _completedController = TextEditingController();
   List<Map<String, dynamic>> tasks = [];
 
   @override
@@ -70,55 +70,59 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) {
-      TextEditingController textController = TextEditingController();
-      return AlertDialog(
-        title: Text('Enter Your Name'),
-        content: TextField(
-          controller: textController,
-          decoration: InputDecoration(hintText: 'Type here'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel'),
+        TextEditingController textController = TextEditingController();
+
+        return AlertDialog(
+          title: const Text('Enter Task'),
+          content: TextField(
+            controller: textController,
+            decoration: const InputDecoration(hintText: 'Type your task here'),
           ),
-          TextButton(
-            onPressed: () {
-              print('User Input: ${textController.text}');
-              Navigator.of(context).pop();
-            },
-            child: Text('Submit'),
-          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final taskName = textController.text.trim();
+                if (taskName.isNotEmpty) {
+                  await dbHelper.insert({
+                    DatabaseHelper.columnName: taskName,
+                    DatabaseHelper.completed: 0,
+                  });
+
+                  _collectData();
+                }
+
+                Navigator.of(context).pop(); 
+              },
+              child: const Text('Submit'),
+            ),
           ],
         );
       },
     );
   }
 
+
   void _insert() async {
     Map<String, dynamic> row = {
       DatabaseHelper.columnName: _nameController.text,
-      DatabaseHelper.columnAge: int.parse(_ageController.text),
+      DatabaseHelper.completed: int.parse(_completedController.text),
     };
     final id = await dbHelper.insert(row);
     debugPrint('inserted row id: $id');
     _showAlert('Insert', 'Inserted row id: $id');
   }
 
-  void _query() async {
-    final id = int.parse(_idController.text);
-    final row = await dbHelper.queryById(id);
-    debugPrint('query row: $row');
-    _showAlert('Query', row != null ? row.toString() : 'No row found with ID $id');
-  }
-
   void _update() async {
     Map<String, dynamic> row = {
       DatabaseHelper.columnId: int.parse(_idController.text),
       DatabaseHelper.columnName: _nameController.text,
-      DatabaseHelper.columnAge: int.parse(_ageController.text),
+      DatabaseHelper.completed: int.parse(_completedController.text),
     };
     final rowsAffected = await dbHelper.update(row);
     debugPrint('updated $rowsAffected row(s)');
@@ -141,14 +145,14 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
               child: Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                _deleteAll(); // Call the delete all function
+                Navigator.of(context).pop();
+                _deleteAll();
               },
               child: Text('Delete'),
             ),
@@ -167,17 +171,58 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('sqflite')),
-      body: ListView.builder(
+      body: tasks.isEmpty
+    ? const Center(child: Text('No tasks yet.'))
+    : ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) {
-          final name = tasks[index]['name'];
-          final age = tasks[index]['age'];
+          final task = tasks[index];
+          final id = task[DatabaseHelper.columnId];
+          final name = task[DatabaseHelper.columnName];
+          final isCompleted = (task['completed'] ?? 0) == 1;
+
           return ListTile(
-            title: Text(name),
-            subtitle: Text('Age: $age'),
+            title: Text(
+              name,
+              style: TextStyle(
+                decoration:
+                    isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                color: isCompleted ? Colors.grey : Colors.black,
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    isCompleted
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
+                    color: isCompleted ? Colors.green : Colors.grey,
+                  ),
+                  onPressed: () async {
+                    await dbHelper.update({
+                      DatabaseHelper.columnId: id,
+                      DatabaseHelper.columnName: name,
+                      'completed': isCompleted ? 0 : 1,
+                    });
+                    _collectData();
+                  },
+                ),
+                // 🗑️ Delete button
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () async {
+                    await dbHelper.delete(id);
+                    _collectData();
+                  },
+                ),
+              ],
+            ),
           );
         },
       ),
+
       
       floatingActionButton: Stack(
         children: [

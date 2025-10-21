@@ -9,7 +9,7 @@ class DatabaseHelper {
   static const table = 'my_table';
   static const columnId = '_id';
   static const columnName = 'name';
-  static const columnAge = 'age';
+  static const completed = 'completed';
 
   late Database _db;
 
@@ -31,7 +31,7 @@ class DatabaseHelper {
       CREATE TABLE $table (
         $columnId INTEGER PRIMARY KEY,
         $columnName TEXT NOT NULL,
-        $columnAge INTEGER NOT NULL
+        $completed INTEGER NOT NULL
       )
     ''');
   }
